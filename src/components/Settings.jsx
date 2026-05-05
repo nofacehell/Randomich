@@ -1,16 +1,44 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function Settings({ initial, onSave }) {
-  const [open, setOpen] = useState(!initial?.letterboxd && !initial?.steamId && !initial?.youtube);
-  const [letterboxd, setLetterboxd] = useState(initial?.letterboxd || '');
+  const hasAny = initial?.letterboxdCsv || initial?.steamId || initial?.youtube;
+  const [open, setOpen] = useState(!hasAny);
+  const [csvName, setCsvName] = useState(initial?.letterboxdFileName || '');
+  const [csv, setCsv] = useState(initial?.letterboxdCsv || '');
   const [steamId, setSteamId] = useState(initial?.steamId || '');
   const [youtube, setYoutube] = useState(initial?.youtube || '');
   const [saved, setSaved] = useState(false);
+  const [csvError, setCsvError] = useState(null);
+  const fileRef = useRef(null);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setCsvError(null);
+    try {
+      const text = await file.text();
+      if (!text.toLowerCase().includes('name') && !text.toLowerCase().includes('letterboxd uri')) {
+        setCsvError('Не похоже на watchlist.csv от Letterboxd');
+        return;
+      }
+      setCsv(text);
+      setCsvName(file.name);
+    } catch (err) {
+      setCsvError('Не удалось прочитать файл: ' + err.message);
+    }
+  };
+
+  const handleClearCsv = () => {
+    setCsv('');
+    setCsvName('');
+    setCsvError(null);
+    if (fileRef.current) fileRef.current.value = '';
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
     onSave({
-      letterboxd: letterboxd.trim(),
+      letterboxdCsv: csv,
+      letterboxdFileName: csvName,
       steamId: steamId.trim(),
       youtube: youtube.trim(),
     });
@@ -31,13 +59,37 @@ export default function Settings({ initial, onSave }) {
 
       {open && (
         <form onSubmit={handleSave} className="px-6 pb-6 space-y-4">
-          <Field
-            label="🎬 Letterboxd username"
-            placeholder="например: schaffrillas"
-            value={letterboxd}
-            onChange={setLetterboxd}
-            hint="Watchlist должен быть публичным"
-          />
+          <div className="block">
+            <span className="block text-sm font-medium mb-1">🎬 Letterboxd watchlist (CSV)</span>
+            <div className="flex items-center gap-3">
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => handleFile(e.target.files?.[0])}
+                className="text-sm file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-purple-600 file:text-white file:cursor-pointer hover:file:bg-purple-500"
+              />
+              {csvName && (
+                <button
+                  type="button"
+                  onClick={handleClearCsv}
+                  className="text-xs text-gray-400 hover:text-red-400"
+                >
+                  ✕ убрать
+                </button>
+              )}
+            </div>
+            {csvName && (
+              <span className="block text-xs text-green-400 mt-1">📎 {csvName}</span>
+            )}
+            {csvError && (
+              <span className="block text-xs text-red-400 mt-1">{csvError}</span>
+            )}
+            <span className="block text-xs text-gray-500 mt-1">
+              Letterboxd → Settings → Import & Export → Export your data → возьми <code className="text-gray-400">watchlist.csv</code> из архива
+            </span>
+          </div>
+
           <Field
             label="🎮 Steam ID (64-bit)"
             placeholder="например: 76561198012345678"

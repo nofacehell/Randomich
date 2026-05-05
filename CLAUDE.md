@@ -1,77 +1,150 @@
-# Wheel of Fate — рабочий чек-лист
+# 🎡 Wheel of Fate
 
-Живой документ: что сделано, что в работе, что осталось. Обновляю по ходу разработки.
+Веб-приложение «колесо фортуны»: пользователь выбирает настроение, колесо случайно выдаёт что посмотреть/во что поиграть/что послушать из его собственных списков. Без ручного выбора — только рандом по своим источникам.
 
-Полный план: `/Users/ea/.claude/plans/nifty-knitting-lake.md`
+Полный план реализации (этапы, верификация): `/Users/ea/.claude/plans/nifty-knitting-lake.md`
+
+---
+
+## Идея
+
+Три источника контента, в каждом — личный список пользователя:
+
+- 🎬 **Фильмы** — Letterboxd watchlist (из CSV-экспорта; см. блокер ниже)
+- 🎮 **Игры** — Steam wishlist (через CORS-прокси / serverless)
+- 🎵 **Музыка** — YouTube playlist (через Data API v3)
+
+Перед спином — выбор настроения (😴 расслабиться / 🔥 бодро / 😢 погрустить / 🤪 угарнуть / 🎲 всё равно). Настроение фильтрует контент по жанрам/тегам через словарь mood→genres.
+
+Бэкенд минимален: Vite dev middleware + Vercel-функции для эндпоинтов, которые нельзя вызвать напрямую из браузера (Steam CORS).
+
+---
 
 ## Стек (зафиксировано)
 
-- Vite + React (JS)
-- Tailwind CSS
-- react-custom-roulette
-- localStorage для настроек/истории
-- corsproxy.io для Steam (CORS)
-- Деплой пока не делаем
+- **Vite + React 18** на JS (даунгрейд с 19 — `react-custom-roulette` поддерживает только 18)
+- **Tailwind CSS v3**
+- **react-custom-roulette** — анимация колеса
+- **localStorage** — настройки, кеш TMDB-жанров, история спинов
+- **Vite middleware-плагин** в `dev-api/` — для local-side прокси (steam)
+- Деплой пока **не делаем** — отдельной задачей
+
+---
 
 ## Прогресс
 
-### ✅ Сделано
-- **Этап 1. Каркас проекта**
-  - [x] Vite + React 18 (даунгрейд для совместимости с react-custom-roulette)
-  - [x] Tailwind v3 + PostCSS, react-custom-roulette
-  - [x] Структура `src/components/ | hooks/ | utils/`
-  - [x] `.env.example` + `.env` в .gitignore
-  - [x] Dev-сервер на `http://localhost:5173`
+### ✅ Сделано (закоммичено)
+
+- **Этап 1. Каркас**
+  - Vite + React 18, Tailwind v3, react-custom-roulette
+  - Структура `src/{components,hooks,utils}/`
+  - `.env.example` (TMDB + YouTube), `.env` в .gitignore
+  - Dev-сервер на `http://localhost:5173`
 
 - **Этап 2. MVP-колесо**
-  - [x] `components/Wheel.jsx` — обёртка react-custom-roulette, цвета по типу
-  - [x] `components/ResultModal.jsx` — постер/жанры/кнопки «Открыть»/«Крутить ещё»
-  - [x] 6 моковых элементов в `App.jsx`, end-to-end проверено пользователем
+  - `components/Wheel.jsx` — обёртка react-custom-roulette, цвета сегментов по типу
+  - `components/ResultModal.jsx` — попап с постером/жанрами/кнопками «Открыть»/«Крутить ещё»
+  - 6 моковых элементов в `App.jsx`, end-to-end проверено
 
-- **Этап 3. Settings UI**
-  - [x] `utils/storage.js` — get/save/remove с префиксом `wof:`
-  - [x] `components/Settings.jsx` — аккордеон с тремя полями
-  - [x] Сохранение в localStorage + автозагрузка при старте — проверено пользователем
+- **Этап 3. Settings UI + localStorage**
+  - `utils/storage.js` — get/save/remove с префиксом `wof:`
+  - `components/Settings.jsx` — аккордеон с полями
+  - Сохранение в localStorage + автозагрузка при старте
 
 - **Этап 4. Mood selector**
-  - [x] `utils/moodFilter.js` — 5 настроений + функция фильтрации (substring по жанрам)
-  - [x] `components/MoodSelector.jsx` — кнопки с эмодзи, активная подсвечена
-  - [x] Индикатор «В колесе: N» + сообщение если <2 элементов
+  - `utils/moodFilter.js` — 5 настроений + функция фильтрации (case-insensitive substring по жанрам)
+  - `components/MoodSelector.jsx` — кнопки с эмодзи, активная подсвечена
+  - Индикатор «В колесе: N» + сообщение если <2 элементов
 
-### 🟡 В работе
-- **Этап 5. Letterboxd RSS**
-  - [ ] `hooks/useLetterboxd.js` — fetch RSS, парсинг через DOMParser
-  - [ ] Запрос к TMDB по title+year для получения жанров
-  - [ ] Кеш в localStorage с TTL 24h
+### 🟡 В работе (не закоммичено / не проверено в браузере)
+
+- **Этап 5. Letterboxd через CSV-импорт** ⚠️ переделано из RSS
+  - [x] `utils/csv.js` — мини RFC4180-парсер
+  - [x] `utils/tmdb.js` — поиск фильма в TMDB по title+year, кеш в localStorage с TTL 30 дней
+  - [x] `hooks/useLetterboxd.js` — парс CSV + последовательное обогащение жанрами/постерами через TMDB
+  - [x] `components/Settings.jsx` — file upload вместо username, сохраняет CSV-текст в localStorage
+  - [x] `App.jsx` интегрирует `useLetterboxd`, показывает прогресс «Загружаем жанры из TMDB: N/M»
+  - [ ] **Не проверено в браузере**: реальный CSV + реальный TMDB-ключ
+  - [ ] TMDB-ключ нужно положить в `.env` (`VITE_TMDB_API_KEY=...`)
+
+- **Этап 6. Steam wishlist**
+  - [x] Каркас: `dev-api/plugin.js` + `dev-api/steam.js` (стаб 501)
+  - [ ] Реальная реализация через corsproxy.io / serverless
+  - [ ] `hooks/useSteam.js`
+  - [ ] MVP принимает только числовой 64-bit Steam ID (vanity → ID — отдельный TODO)
 
 ### ⬜ В очереди
 
-- **Этап 6. Steam wishlist**
-  - `hooks/useSteam.js` через corsproxy.io
-  - MVP: только числовой 64-bit Steam ID
-  - Обработка приватных профилей
-
 - **Этап 7. YouTube playlist**
-  - `hooks/useYoutube.js` (Data API v3)
+  - `hooks/useYoutube.js` — Data API v3
   - Парсинг playlistId из URL
 
 - **Этап 8. Объединение и фильтрация**
-  - В `App.jsx` собрать единый список `{ type, title, image, genres, url }`
-  - Фильтрация по mood
-  - Сообщение если <2 элементов
+  - В `App.jsx` собрать единый список из всех трёх источников ✅ частично готово
+  - Сообщение если <2 элементов после фильтра ✅
+  - Лоадеры по каждому источнику отдельно
 
 - **Этап 9. Полировка**
-  - Кнопки «только фильмы / только игры / только музыка»
-  - История последних 10 спинов в localStorage
-  - Лоадеры
-  - Обработка ошибок
-  - Mobile-адаптив
+  - Кнопки «только фильмы / только игры / только музыка» (временное исключение категории)
+  - История последних 10 спинов в localStorage + UI-список
+  - Унифицированные лоадеры/ошибки
+  - Mobile-адаптив, доработка UI/UX (по словам пользователя — «потом»)
 
 - **Этап 10. README**
-  - Инструкция по API-ключам
+  - Инструкция по получению TMDB и YouTube API-ключей
   - Команды установки/запуска
+  - Деплой на Vercel — отдельной задачей
 
-## Открытые вопросы / TODO
+---
 
-- Resolve Steam vanity URL → SteamID64 (для MVP — обходим, требуем числовой ID)
-- TMDB rate limits — насколько агрессивно кешировать
+## ⚠️ Открытые проблемы и решения
+
+- **Letterboxd RSS заблокирован Cloudflare** — на текущем IP (и через corsproxy.io / api.codetabs / api.allorigins) возвращается challenge-страница с любым UA, в том числе из Node-сервера. Решено перейти на **CSV-импорт** (`Letterboxd → Settings → Import & Export`). Может, на Vercel с другим IP RSS-fetch заработает — но это не проверено и не обязательно нужно.
+
+- **Steam wishlist API + CORS** — нужен dev-прокси (Vite middleware) и аналогичная Vercel-функция. Сейчас только стаб.
+
+- **Vanity Steam URL** — для MVP принимаем только числовой 64-bit Steam ID. Resolve vanity → ID требует Steam WebAPI ключа, отложено.
+
+- **TMDB rate limits** — 50 req/sec, мы делаем последовательно. Для watchlist >100 фильмов может быть медленно. Кеш в localStorage с TTL 30 дней снимает повторные запросы.
+
+---
+
+## Структура
+
+```
+.
+├── api/                       # (будет) Vercel-функции
+├── dev-api/                   # Vite dev middleware, имитирует api/* локально
+│   ├── plugin.js
+│   └── steam.js               # пока стаб 501
+├── src/
+│   ├── components/
+│   │   ├── MoodSelector.jsx
+│   │   ├── ResultModal.jsx
+│   │   ├── Settings.jsx
+│   │   └── Wheel.jsx
+│   ├── hooks/
+│   │   └── useLetterboxd.js   # WIP
+│   ├── utils/
+│   │   ├── csv.js
+│   │   ├── moodFilter.js
+│   │   ├── storage.js
+│   │   └── tmdb.js
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+├── .env.example
+├── tailwind.config.js
+├── vite.config.js
+└── package.json
+```
+
+---
+
+## Команды
+
+```bash
+npm install
+cp .env.example .env   # вписать TMDB и YouTube ключи
+npm run dev            # http://localhost:5173
+```

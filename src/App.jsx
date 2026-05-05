@@ -3,24 +3,11 @@ import Wheel from './components/Wheel';
 import ResultModal from './components/ResultModal';
 import Settings from './components/Settings';
 import MoodSelector from './components/MoodSelector';
+import { useLetterboxd } from './hooks/useLetterboxd';
 import { filterByMood } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
-const MOCK_ITEMS = [
-  {
-    type: 'movie',
-    title: 'The Grand Budapest Hotel',
-    image: 'https://image.tmdb.org/t/p/w500/eWdyYQreja6JGCzqHWXpWHDrrPo.jpg',
-    genres: ['Comedy', 'Drama'],
-    url: 'https://letterboxd.com/film/the-grand-budapest-hotel/',
-  },
-  {
-    type: 'movie',
-    title: 'Blade Runner 2049',
-    image: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg',
-    genres: ['Sci-Fi', 'Drama', 'Thriller'],
-    url: 'https://letterboxd.com/film/blade-runner-2049/',
-  },
+const MOCK_GAMES_AND_MUSIC = [
   {
     type: 'game',
     title: 'Hades',
@@ -51,7 +38,12 @@ const MOCK_ITEMS = [
   },
 ];
 
-const DEFAULT_SETTINGS = { letterboxd: '', steamId: '', youtube: '' };
+const DEFAULT_SETTINGS = {
+  letterboxdCsv: '',
+  letterboxdFileName: '',
+  steamId: '',
+  youtube: '',
+};
 
 export default function App() {
   const [result, setResult] = useState(null);
@@ -60,9 +52,20 @@ export default function App() {
   );
   const [mood, setMood] = useState('any');
 
+  const {
+    items: movies,
+    loading: moviesLoading,
+    error: moviesError,
+    progress: moviesProgress,
+  } = useLetterboxd(settings.letterboxdCsv);
+
+  const allItems = useMemo(
+    () => [...movies, ...MOCK_GAMES_AND_MUSIC],
+    [movies]
+  );
   const filteredItems = useMemo(
-    () => filterByMood(MOCK_ITEMS, mood),
-    [mood]
+    () => filterByMood(allItems, mood),
+    [allItems, mood]
   );
 
   const handleSaveSettings = (next) => {
@@ -77,6 +80,15 @@ export default function App() {
       </h1>
       <Settings initial={settings} onSave={handleSaveSettings} />
       <MoodSelector selected={mood} onSelect={setMood} />
+
+      {moviesError && (
+        <div className="text-red-400 text-sm mb-3">⚠️ {moviesError}</div>
+      )}
+      {moviesLoading && (
+        <div className="text-gray-400 text-sm mb-3">
+          Загружаем жанры из TMDB: {moviesProgress.done}/{moviesProgress.total}
+        </div>
+      )}
 
       {filteredItems.length < 2 ? (
         <div className="text-center text-gray-400 p-8 max-w-md">
