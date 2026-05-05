@@ -17,27 +17,24 @@
 
 ### ✅ Сделано
 - **Этап 1. Каркас проекта**
-  - [x] Vite + React (даунгрейд React 18 для совместимости с react-custom-roulette)
-  - [x] Tailwind v3 + PostCSS
-  - [x] react-custom-roulette
-  - [x] Структура: `src/components/`, `src/hooks/`, `src/utils/`
-  - [x] `.env.example` (TMDB + YouTube)
-  - [x] `.env` в .gitignore
-  - [x] Удалены шаблонные ассеты Vite, App.jsx — заглушка
-  - [x] Dev-сервер поднимается без ошибок (`http://localhost:5173`)
+  - [x] Vite + React 18 (даунгрейд для совместимости с react-custom-roulette)
+  - [x] Tailwind v3 + PostCSS, react-custom-roulette
+  - [x] Структура `src/components/ | hooks/ | utils/`
+  - [x] `.env.example` + `.env` в .gitignore
+  - [x] Dev-сервер на `http://localhost:5173`
+
+- **Этап 2. MVP-колесо**
+  - [x] `components/Wheel.jsx` — обёртка react-custom-roulette, цвета по типу
+  - [x] `components/ResultModal.jsx` — постер/жанры/кнопки «Открыть»/«Крутить ещё»
+  - [x] 6 моковых элементов в `App.jsx`, end-to-end проверено пользователем
 
 ### 🟡 В работе
-- **Этап 2. MVP-колесо со статикой**
-  - [ ] `components/Wheel.jsx` (обёртка react-custom-roulette)
-  - [ ] `components/ResultModal.jsx`
-  - [ ] 5–10 хардкодных элементов, проверка анимации/попапа
+- **Этап 3. Settings UI**
+  - [ ] `utils/storage.js` — get/set хелперы для localStorage
+  - [ ] `components/Settings.jsx` — три секции (Letterboxd / Steam / YouTube)
+  - [ ] Кнопка «Сохранить», подгрузка значений при старте
 
 ### ⬜ В очереди
-
-- **Этап 3. Settings UI**
-  - `components/Settings.jsx` — три секции (Letterboxd / Steam / YouTube)
-  - Кнопка «Сохранить» → `utils/storage.js` (localStorage)
-  - Подгрузка значений при старте
 
 - **Этап 4. Mood selector**
   - `components/MoodSelector.jsx` — 5 кнопок-настроений
