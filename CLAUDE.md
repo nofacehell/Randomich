@@ -33,16 +33,18 @@
   - [x] `components/Settings.jsx` — аккордеон с тремя полями
   - [x] Сохранение в localStorage + автозагрузка при старте — проверено пользователем
 
-### 🟡 В работе
 - **Этап 4. Mood selector**
-  - [ ] `utils/moodFilter.js` — словарь mood→genres + функция фильтрации
-  - [ ] `components/MoodSelector.jsx` — 5 кнопок-настроений с эмодзи
+  - [x] `utils/moodFilter.js` — 5 настроений + функция фильтрации (substring по жанрам)
+  - [x] `components/MoodSelector.jsx` — кнопки с эмодзи, активная подсвечена
+  - [x] Индикатор «В колесе: N» + сообщение если <2 элементов
+
+### 🟡 В работе
+- **Этап 5. Letterboxd RSS**
+  - [ ] `hooks/useLetterboxd.js` — fetch RSS, парсинг через DOMParser
+  - [ ] Запрос к TMDB по title+year для получения жанров
+  - [ ] Кеш в localStorage с TTL 24h
 
 ### ⬜ В очереди
-
-- **Этап 5. Letterboxd RSS**
-  - `hooks/useLetterboxd.js` (RSS + TMDB для жанров)
-  - Кеш в localStorage с TTL 24h
 
 - **Этап 6. Steam wishlist**
   - `hooks/useSteam.js` через corsproxy.io

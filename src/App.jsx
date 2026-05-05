@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Wheel from './components/Wheel';
 import ResultModal from './components/ResultModal';
 import Settings from './components/Settings';
+import MoodSelector from './components/MoodSelector';
+import { filterByMood } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
 const MOCK_ITEMS = [
@@ -16,7 +18,7 @@ const MOCK_ITEMS = [
     type: 'movie',
     title: 'Blade Runner 2049',
     image: 'https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg',
-    genres: ['Sci-Fi', 'Drama'],
+    genres: ['Sci-Fi', 'Drama', 'Thriller'],
     url: 'https://letterboxd.com/film/blade-runner-2049/',
   },
   {
@@ -30,7 +32,7 @@ const MOCK_ITEMS = [
     type: 'game',
     title: 'Stardew Valley',
     image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/413150/header.jpg',
-    genres: ['Casual', 'Relaxing'],
+    genres: ['Casual', 'Relaxing', 'Cozy'],
     url: 'https://store.steampowered.com/app/413150/',
   },
   {
@@ -56,6 +58,12 @@ export default function App() {
   const [settings, setSettings] = useState(() =>
     load(KEYS.settings, DEFAULT_SETTINGS)
   );
+  const [mood, setMood] = useState('any');
+
+  const filteredItems = useMemo(
+    () => filterByMood(MOCK_ITEMS, mood),
+    [mood]
+  );
 
   const handleSaveSettings = (next) => {
     setSettings(next);
@@ -68,7 +76,23 @@ export default function App() {
         🎡 Wheel of Fate
       </h1>
       <Settings initial={settings} onSave={handleSaveSettings} />
-      <Wheel items={MOCK_ITEMS} onResult={setResult} />
+      <MoodSelector selected={mood} onSelect={setMood} />
+
+      {filteredItems.length < 2 ? (
+        <div className="text-center text-gray-400 p-8 max-w-md">
+          Под это настроение подходит {filteredItems.length} элемент
+          {filteredItems.length === 1 ? '' : 'ов'}. Попробуй другое настроение
+          или «Всё равно».
+        </div>
+      ) : (
+        <>
+          <div className="text-sm text-gray-500 mb-3">
+            В колесе: {filteredItems.length}
+          </div>
+          <Wheel items={filteredItems} onResult={setResult} />
+        </>
+      )}
+
       <ResultModal
         result={result}
         onClose={() => setResult(null)}
