@@ -28,18 +28,17 @@
   - [x] `components/ResultModal.jsx` — постер/жанры/кнопки «Открыть»/«Крутить ещё»
   - [x] 6 моковых элементов в `App.jsx`, end-to-end проверено пользователем
 
-### 🟡 В работе
 - **Этап 3. Settings UI**
-  - [ ] `utils/storage.js` — get/set хелперы для localStorage
-  - [ ] `components/Settings.jsx` — три секции (Letterboxd / Steam / YouTube)
-  - [ ] Кнопка «Сохранить», подгрузка значений при старте
+  - [x] `utils/storage.js` — get/save/remove с префиксом `wof:`
+  - [x] `components/Settings.jsx` — аккордеон с тремя полями
+  - [x] Сохранение в localStorage + автозагрузка при старте — проверено пользователем
+
+### 🟡 В работе
+- **Этап 4. Mood selector**
+  - [ ] `utils/moodFilter.js` — словарь mood→genres + функция фильтрации
+  - [ ] `components/MoodSelector.jsx` — 5 кнопок-настроений с эмодзи
 
 ### ⬜ В очереди
-
-- **Этап 4. Mood selector**
-  - `components/MoodSelector.jsx` — 5 кнопок-настроений
-  - Большая кнопка «КРУТИТЬ»
-  - `utils/moodFilter.js` — словарь mood→genres
 
 - **Этап 5. Letterboxd RSS**
   - `hooks/useLetterboxd.js` (RSS + TMDB для жанров)

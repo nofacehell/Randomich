@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Wheel from './components/Wheel';
 import ResultModal from './components/ResultModal';
+import Settings from './components/Settings';
+import { load, save, KEYS } from './utils/storage';
 
 const MOCK_ITEMS = [
   {
@@ -47,14 +49,25 @@ const MOCK_ITEMS = [
   },
 ];
 
+const DEFAULT_SETTINGS = { letterboxd: '', steamId: '', youtube: '' };
+
 export default function App() {
   const [result, setResult] = useState(null);
+  const [settings, setSettings] = useState(() =>
+    load(KEYS.settings, DEFAULT_SETTINGS)
+  );
+
+  const handleSaveSettings = (next) => {
+    setSettings(next);
+    save(KEYS.settings, next);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-8">
       <h1 className="text-4xl md:text-5xl font-bold mb-8 text-center">
         🎡 Wheel of Fate
       </h1>
+      <Settings initial={settings} onSave={handleSaveSettings} />
       <Wheel items={MOCK_ITEMS} onResult={setResult} />
       <ResultModal
         result={result}
