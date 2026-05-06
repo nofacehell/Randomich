@@ -38,6 +38,11 @@ export function filterByMood(items, moodId) {
   if (!rules) return items;
 
   return items.filter((item) => {
+    // Music has no reliable genre metadata from YouTube — assume the
+    // user has already curated the playlist for their taste, so it
+    // always passes mood filters.
+    if (item.type === 'music') return true;
+
     const keywords = rules[item.type];
     if (!keywords) return false;
     if (!item.genres || item.genres.length === 0) return false;

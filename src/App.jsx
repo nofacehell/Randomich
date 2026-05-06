@@ -5,25 +5,9 @@ import Settings from './components/Settings';
 import MoodSelector from './components/MoodSelector';
 import { useLetterboxd } from './hooks/useLetterboxd';
 import { useSteam } from './hooks/useSteam';
+import { useYoutube } from './hooks/useYoutube';
 import { filterByMood } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
-
-const MOCK_MUSIC = [
-  {
-    type: 'music',
-    title: 'Lo-fi Beats Mix',
-    image: 'https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg',
-    genres: ['Lo-fi', 'Chill'],
-    url: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
-  },
-  {
-    type: 'music',
-    title: 'Synthwave Drive',
-    image: 'https://i.ytimg.com/vi/4xDzrJKXOOY/hqdefault.jpg',
-    genres: ['Electronic', 'Synthwave'],
-    url: 'https://www.youtube.com/watch?v=4xDzrJKXOOY',
-  },
-];
 
 const DEFAULT_SETTINGS = {
   letterboxdCsv: '',
@@ -53,9 +37,15 @@ export default function App() {
     progress: gamesProgress,
   } = useSteam(settings.steamId);
 
+  const {
+    items: tracks,
+    loading: tracksLoading,
+    error: tracksError,
+  } = useYoutube(settings.youtube);
+
   const allItems = useMemo(
-    () => [...movies, ...games, ...MOCK_MUSIC],
-    [movies, games]
+    () => [...movies, ...games, ...tracks],
+    [movies, games, tracks]
   );
   const filteredItems = useMemo(
     () => filterByMood(allItems, mood),
@@ -87,6 +77,10 @@ export default function App() {
           <div className="text-gray-400">
             🎮 Загружаем игры из Steam: {gamesProgress.done}/{gamesProgress.total}
           </div>
+        )}
+        {tracksError && <div className="text-red-400">🎵 {tracksError}</div>}
+        {tracksLoading && (
+          <div className="text-gray-400">🎵 Загружаем плейлист…</div>
         )}
       </div>
 
