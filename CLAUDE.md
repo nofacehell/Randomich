@@ -64,19 +64,17 @@
   - [x] `App.jsx` интегрирует `useLetterboxd`, показывает прогресс «N/M»
   - [x] Проверено end-to-end с реальным CSV + TMDB-ключом
 
+- **Этап 6. Steam wishlist**
+  - [x] `dev-api/steam.js` — два action'а: `wishlist` (IWishlistService) и `appdetails` (имена/жанры/обложки)
+  - [x] `hooks/useSteam.js` — fetch wishlist → батчем appdetails → кеш 7 дней
+  - [x] Валидация 17-значного SteamID64
+  - [x] Проверено end-to-end на реальном профиле
+
 ### 🟡 В работе
 
-- **Этап 6. Steam wishlist**
-  - [x] Каркас: `dev-api/plugin.js` + `dev-api/steam.js` (стаб 501)
-  - [ ] Реальная реализация — fetch wishlistdata через прокси
-  - [ ] `hooks/useSteam.js`
-  - [ ] MVP принимает только числовой 64-bit Steam ID (vanity → ID отдельный TODO)
-
-### ⬜ В очереди
-
 - **Этап 7. YouTube playlist**
-  - `hooks/useYoutube.js` — Data API v3
-  - Парсинг playlistId из URL
+  - [ ] `hooks/useYoutube.js` — Data API v3
+  - [ ] Парсинг playlistId из URL
 
 - **Этап 8. Объединение и фильтрация**
   - В `App.jsx` собрать единый список из всех трёх источников ✅ частично готово

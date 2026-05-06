@@ -4,24 +4,11 @@ import ResultModal from './components/ResultModal';
 import Settings from './components/Settings';
 import MoodSelector from './components/MoodSelector';
 import { useLetterboxd } from './hooks/useLetterboxd';
+import { useSteam } from './hooks/useSteam';
 import { filterByMood } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
-const MOCK_GAMES_AND_MUSIC = [
-  {
-    type: 'game',
-    title: 'Hades',
-    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/header.jpg',
-    genres: ['Action', 'Roguelike'],
-    url: 'https://store.steampowered.com/app/1145360/',
-  },
-  {
-    type: 'game',
-    title: 'Stardew Valley',
-    image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/413150/header.jpg',
-    genres: ['Casual', 'Relaxing', 'Cozy'],
-    url: 'https://store.steampowered.com/app/413150/',
-  },
+const MOCK_MUSIC = [
   {
     type: 'music',
     title: 'Lo-fi Beats Mix',
@@ -59,9 +46,16 @@ export default function App() {
     progress: moviesProgress,
   } = useLetterboxd(settings.letterboxdCsv);
 
+  const {
+    items: games,
+    loading: gamesLoading,
+    error: gamesError,
+    progress: gamesProgress,
+  } = useSteam(settings.steamId);
+
   const allItems = useMemo(
-    () => [...movies, ...MOCK_GAMES_AND_MUSIC],
-    [movies]
+    () => [...movies, ...games, ...MOCK_MUSIC],
+    [movies, games]
   );
   const filteredItems = useMemo(
     () => filterByMood(allItems, mood),
@@ -81,14 +75,20 @@ export default function App() {
       <Settings initial={settings} onSave={handleSaveSettings} />
       <MoodSelector selected={mood} onSelect={setMood} />
 
-      {moviesError && (
-        <div className="text-red-400 text-sm mb-3">⚠️ {moviesError}</div>
-      )}
-      {moviesLoading && (
-        <div className="text-gray-400 text-sm mb-3">
-          Загружаем жанры из TMDB: {moviesProgress.done}/{moviesProgress.total}
-        </div>
-      )}
+      <div className="space-y-1 text-sm mb-3">
+        {moviesError && <div className="text-red-400">🎬 {moviesError}</div>}
+        {moviesLoading && (
+          <div className="text-gray-400">
+            🎬 Загружаем жанры из TMDB: {moviesProgress.done}/{moviesProgress.total}
+          </div>
+        )}
+        {gamesError && <div className="text-red-400">🎮 {gamesError}</div>}
+        {gamesLoading && (
+          <div className="text-gray-400">
+            🎮 Загружаем игры из Steam: {gamesProgress.done}/{gamesProgress.total}
+          </div>
+        )}
+      </div>
 
       {filteredItems.length < 2 ? (
         <div className="text-center text-gray-400 p-8 max-w-md">
