@@ -56,22 +56,21 @@
   - `components/MoodSelector.jsx` — кнопки с эмодзи, активная подсвечена
   - Индикатор «В колесе: N» + сообщение если <2 элементов
 
-### 🟡 В работе (не закоммичено / не проверено в браузере)
-
-- **Этап 5. Letterboxd через CSV-импорт** ⚠️ переделано из RSS
+- **Этап 5. Letterboxd через CSV-импорт** ⚠️ переделано из RSS из-за Cloudflare-блока
   - [x] `utils/csv.js` — мини RFC4180-парсер
   - [x] `utils/tmdb.js` — поиск фильма в TMDB по title+year, кеш в localStorage с TTL 30 дней
   - [x] `hooks/useLetterboxd.js` — парс CSV + последовательное обогащение жанрами/постерами через TMDB
-  - [x] `components/Settings.jsx` — file upload вместо username, сохраняет CSV-текст в localStorage
-  - [x] `App.jsx` интегрирует `useLetterboxd`, показывает прогресс «Загружаем жанры из TMDB: N/M»
-  - [ ] **Не проверено в браузере**: реальный CSV + реальный TMDB-ключ
-  - [ ] TMDB-ключ нужно положить в `.env` (`VITE_TMDB_API_KEY=...`)
+  - [x] `components/Settings.jsx` — file upload, сохраняет CSV-текст в localStorage
+  - [x] `App.jsx` интегрирует `useLetterboxd`, показывает прогресс «N/M»
+  - [x] Проверено end-to-end с реальным CSV + TMDB-ключом
+
+### 🟡 В работе
 
 - **Этап 6. Steam wishlist**
   - [x] Каркас: `dev-api/plugin.js` + `dev-api/steam.js` (стаб 501)
-  - [ ] Реальная реализация через corsproxy.io / serverless
+  - [ ] Реальная реализация — fetch wishlistdata через прокси
   - [ ] `hooks/useSteam.js`
-  - [ ] MVP принимает только числовой 64-bit Steam ID (vanity → ID — отдельный TODO)
+  - [ ] MVP принимает только числовой 64-bit Steam ID (vanity → ID отдельный TODO)
 
 ### ⬜ В очереди
 
