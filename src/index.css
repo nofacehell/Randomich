@@ -8,7 +8,91 @@ html, body, #root {
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  background: #0f0f14;
-  color: #f3f4f6;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  background: #070605;
+  color: #f5f1e8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Aurora glow + subtle diagonal hatch on the page background. The hatch is
+   a 2px repeating gradient at 18% opacity — gives the editorial paper feel
+   from the mockup. */
+.bg-aurora {
+  position: relative;
+  isolation: isolate;
+  background-color: #070605;
+}
+.bg-aurora::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 50% at 65% 45%,
+    rgba(247, 107, 28, 0.32),
+    rgba(247, 107, 28, 0.08) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: -2;
+}
+.bg-aurora::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.018) 0 1px,
+    transparent 1px 6px
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+.label-caps {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #73685a;
+}
+
+/* Override react-custom-roulette's hard-coded 445px cap on the outer
+   container. Apply to its direct child (the styled RouletteContainer). */
+.wheel-stage {
+  width: min(70vh, 600px);
+  height: min(70vh, 600px);
+}
+.wheel-stage > div {
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+.wheel-hub {
+  /* Centre disc roughly matches react-custom-roulette's innerRadius (26%). */
+  width: 28%;
+  height: 28%;
+}
+
+/* Tell browser translators (Chrome/Yandex/Edge) and spell-checkers to
+   leave decorative UI text alone — otherwise English subtitles inside
+   Russian-locale tabs get a wavy underline. */
+.no-translate {
+  text-decoration: none !important;
+  -webkit-text-decoration: none !important;
+}
+
+/* Kill Chrome's autofill yellow/white background — paint it with a long
+   inset shadow that matches our dark surface. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f5f1e8;
+  -webkit-box-shadow: 0 0 0 1000px #070605 inset;
+  box-shadow: 0 0 0 1000px #070605 inset;
+  caret-color: #f5f1e8;
+  transition: background-color 9999s ease-in-out 0s;
 }

@@ -1,38 +1,43 @@
-const TYPE_EMOJI = { movie: '🎬', game: '🎮', music: '🎵' };
+const TYPE_DOT = {
+  movie: '#ff8a3a',
+  game: '#7dd3a8',
+  music: '#c084fc',
+};
 
 export default function History({ entries, onClear }) {
   if (!entries || entries.length === 0) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-10 mb-4">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-sm font-semibold text-gray-400">
-          Последние результаты
-        </h2>
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="label-caps">Recent fates</span>
         <button
           type="button"
           onClick={onClear}
-          className="text-xs text-gray-500 hover:text-red-400"
+          className="label-caps hover:text-ember-400 transition-colors"
         >
-          Очистить
+          clear
         </button>
       </div>
       <ul className="space-y-1">
-        {entries.map((e) => (
+        {entries.slice(0, 5).map((e) => (
           <li
             key={e.id}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-900/50 border border-gray-800 text-sm"
+            className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg bg-ink-900/40 border border-ink-500/10 text-[12px]"
           >
-            <span className="shrink-0">{TYPE_EMOJI[e.type] || '•'}</span>
+            <span
+              className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ background: TYPE_DOT[e.type] }}
+            />
             <a
               href={e.url || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 truncate hover:text-purple-400"
+              className="flex-1 truncate text-ink-100 hover:text-ember-400 transition-colors"
             >
               {e.title}
             </a>
-            <span className="shrink-0 text-xs text-gray-500">
+            <span className="shrink-0 text-[10px] text-ink-500 tracking-wide">
               {formatTime(e.at)}
             </span>
           </li>

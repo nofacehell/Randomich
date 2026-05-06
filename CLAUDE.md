@@ -82,22 +82,38 @@
   - [x] Сообщение «подходит N элементов» если фильтр оставил <2
 
 - **Этап 9. Полировка функциональности**
-  - [x] `components/CategoryFilter.jsx` — кнопки-чипы 🎬/🎮/🎵 со счётчиками
-  - [x] `components/History.jsx` — последние 10 спинов в localStorage с временем
-  - [x] `components/ShuffleControls.jsx` — Перемешать / Сбросить, seeded Fisher-Yates
-  - [x] Автосброс shuffle при смене состава колеса
+  - [x] `components/CategoryFilter.jsx` — чипы 🎬/🎮/🎵 со счётчиками
+  - [x] `components/History.jsx` — последние 10 спинов в localStorage
+  - [x] Shuffle/Reset с seeded Fisher-Yates + автосброс при смене состава колеса
+    (UI-кнопки переехали в `CurrentlyInWheel` при редизайне; `ShuffleControls.jsx` удалён)
 
-### 🟡 В работе
+- **Этап 10. Cinematic редизайн** (мокап в тёмной версии)
+  - [x] Editorial typography: Instrument Serif (через Google Fonts) + Inter
+  - [x] Aurora-градиент на фоне (`bg-aurora` в index.css) + лёгкий диагональный hatch
+  - [x] Двухколоночный лейаут: колесо слева, mood + список + история справа
+  - [x] Тонкая шапка `HeaderStrip` (No. 047, дата, item counts, шестерёнка)
+  - [x] Футер `FooterStrip` (FILMS · N / GAMES · N / MUSIC · N + Connected sources)
+  - [x] Mood-карточки 4:5 (после правок — emoji + только русский label, центрировано)
+  - [x] Колесо: тёмные сегменты, цветные дуги по типу (оранжевый/зелёный/фиолетовый),
+        кастомный CSS-override на 600px, центральный hub-кнопка с SPIN
+  - [x] Settings → шестерёнка → tinted modal с custom-стиль file-input,
+        autofill-фикс через `-webkit-box-shadow inset`
+  - [x] Result modal: горизонтальный, постер слева, бейдж + 3 кнопки (Открыть/Крутить ещё/Не сегодня)
+  - [x] `CurrentlyInWheel` — чипы с цветной точкой по типу + иконки 🔀/↺
+  - [x] Tailwind palette: `ink-*` (тёмные тона), `ember-*` (оранжевый), `font-serif`/`font-sans`/`font-mono`
+  - [x] `<html lang="ru" translate="no">` + meta `notranslate` чтобы убрать
+        wavy-underline от браузерного спел-чекера
 
-- **Этап 10. Cinematic редизайн** (по присланному мокапу — тёмная версия)
-  - [ ] Editorial typography: Instrument Serif/Fraunces для заголовка с курсивом «random»
-  - [ ] Aurora-градиент на фоне (тёплый оранжевый glow)
-  - [ ] Двухколоночный лейаут: колесо слева, mood + список справа
-  - [ ] Mood-карточки 4:5 с иконкой/заголовком/подписью
-  - [ ] Колесо в editorial-стиле: тёмные сегменты, тонкие разделители, тёмный центр с SPIN
-  - [ ] Settings → шестерёнка в шапке, открывает modal/drawer
-  - [ ] Result modal — узкий, черный/оранжевый/outlined CTA, бейдж источника
-  - [ ] Тонкая шапка (NO. 047, дата, item counts) и футер (FILMS · N · GAMES · N)
+### 🟡 Известные проблемы / TODO
+
+- **Шафл-иконки в `CurrentlyInWheel`** — пользователь сообщил что не видит их
+  в правой колонке. Возможно перекрываются `flex justify-between`-расчётом или
+  спрятаны overflow. Не исправлено.
+- **Hairline на ободе колеса** — иногда виден тонкий контур по нижнему краю
+  (canvas anti-aliasing). Прибил `outerBorderWidth=0` + `innerBorderWidth=0`,
+  но эффект может остаться у некоторых пользователей.
+- **UI/UX в целом** — пользователь хочет дальше итерировать, но эта сессия
+  закончена. Возобновим со следующего захода.
 
 - **Этап 8. Объединение и фильтрация**
   - В `App.jsx` собрать единый список из всех трёх источников ✅ частично готово

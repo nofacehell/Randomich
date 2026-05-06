@@ -1,55 +1,71 @@
-const TYPE_LABELS = {
-  movie: '🎬 Фильм',
-  game: '🎮 Игра',
-  music: '🎵 Музыка',
+const TYPE_BADGE = {
+  movie: { label: 'Letterboxd', tag: 'Film' },
+  game: { label: 'Steam', tag: 'Game' },
+  music: { label: 'YouTube', tag: 'Music' },
 };
 
 export default function ResultModal({ result, onClose, onSpinAgain }) {
   if (!result) return null;
+  const badge = TYPE_BADGE[result.type] || { label: result.type, tag: '' };
+  const year = result.year ? ` · ${result.year}` : '';
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-gray-700"
+        className="w-full max-w-2xl bg-ink-900 border border-ink-500/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
-        {result.image && (
-          <img
-            src={result.image}
-            alt={result.title}
-            className="w-full h-64 object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        )}
-        <div className="p-6 space-y-3">
-          <div className="text-sm text-gray-400">
-            {TYPE_LABELS[result.type] || result.type}
+        {/* poster strip */}
+        <div className="relative md:w-2/5 aspect-[3/4] md:aspect-auto bg-ink-950 shrink-0">
+          {result.image ? (
+            <img
+              src={result.image}
+              alt={result.title}
+              className="w-full h-full object-cover opacity-90"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : null}
+          <div className="absolute top-3 left-3 label-caps text-ink-100 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+            {badge.tag}{year}
           </div>
-          <h2 className="text-2xl font-bold">{result.title}</h2>
-          {result.genres?.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {result.genres.map((g) => (
-                <span
-                  key={g}
-                  className="px-2 py-1 text-xs rounded-full bg-gray-800 text-gray-300"
-                >
-                  {g}
-                </span>
-              ))}
+          <div className="absolute bottom-3 left-3 right-3 font-serif text-ink-50 text-lg leading-tight truncate">
+            {result.title}
+          </div>
+        </div>
+
+        {/* details */}
+        <div className="flex-1 p-6 flex flex-col justify-between min-w-0">
+          <div>
+            <div className="flex items-center gap-2 label-caps">
+              <span className="text-ember-400">·</span>
+              <span>{badge.label}</span>
+              <span className="text-ink-500">·</span>
+              <span>The wheel chose</span>
             </div>
-          )}
-          <div className="flex gap-3 pt-3">
+            <h2 className="font-serif text-3xl md:text-4xl text-ink-50 mt-2 leading-tight">
+              {result.title}
+            </h2>
+            {result.genres?.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 label-caps">
+                {result.genres.slice(0, 5).map((g) => (
+                  <span key={g}>{g}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-6">
             {result.url && (
               <a
                 href={result.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 text-center px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 transition-colors"
+                className="px-4 py-2 rounded-lg bg-ink-50 text-ink-950 hover:bg-white transition-colors text-sm tracking-wide font-medium"
               >
                 Открыть
               </a>
@@ -57,9 +73,16 @@ export default function ResultModal({ result, onClose, onSpinAgain }) {
             <button
               type="button"
               onClick={onSpinAgain}
-              className="flex-1 px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 rounded-lg bg-ember-500 hover:bg-ember-400 text-white transition-colors text-sm tracking-wide font-medium"
             >
-              Крутить ещё
+              Крутить ещё ↻
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-ink-500/30 text-ink-400 hover:text-ink-50 hover:border-ink-400 transition-colors text-sm tracking-wide"
+            >
+              Не сегодня
             </button>
           </div>
         </div>
