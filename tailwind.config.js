@@ -9,16 +9,23 @@ export default {
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       colors: {
+        // Cream / paper editorial palette
+        paper: {
+          50: '#faf6ec',     // page bg, lightest
+          100: '#f3ecdb',    // sidebar / surface
+          200: '#e8dec5',    // borders, dividers
+          300: '#d8caa9',
+        },
         ink: {
-          50: '#f5f1e8',     // off-white text on dark
-          100: '#e8e1d0',
-          400: '#9b8e7a',    // muted secondary
-          500: '#73685a',    // small caps labels
-          900: '#0c0a08',    // base bg
-          950: '#070605',    // darker bg
+          50: '#faf6ec',     // text on dark surfaces (rare)
+          400: '#9b8e76',    // muted secondary text
+          500: '#6e6450',    // small caps labels
+          700: '#3a3327',    // body text
+          900: '#1a160e',    // headlines + black CTAs
+          950: '#0c0a08',
         },
         ember: {
-          400: '#ff8a3a',    // accent orange
+          400: '#ff8a3a',
           500: '#f76b1c',    // CTA orange
           600: '#d4520f',
         },

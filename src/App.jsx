@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import HeaderStrip from './components/HeaderStrip';
-import FooterStrip from './components/FooterStrip';
+import TopNav from './components/TopNav';
 import Wheel from './components/Wheel';
 import ResultModal from './components/ResultModal';
 import Settings from './components/Settings';
+import HistoryModal from './components/HistoryModal';
 import MoodSelector from './components/MoodSelector';
-import CategoryFilter from './components/CategoryFilter';
-import CurrentlyInWheel from './components/CurrentlyInWheel';
-import History from './components/History';
+import SourcesList from './components/SourcesList';
+import LastSpin, { RecentList } from './components/LastSpin';
 import { useLetterboxd } from './hooks/useLetterboxd';
 import { useSteam } from './hooks/useSteam';
 import { useYoutube } from './hooks/useYoutube';
-import { filterByMood } from './utils/moodFilter';
+import { filterByMood, countMatched } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
 const DEFAULT_SETTINGS = {
@@ -20,7 +19,6 @@ const DEFAULT_SETTINGS = {
   steamId: '',
   youtube: '',
 };
-const DEFAULT_ENABLED = { movie: true, game: true, music: true };
 const HISTORY_LIMIT = 10;
 
 // Seeded Fisher-Yates so a given seed always produces the same permutation —
@@ -42,15 +40,14 @@ export default function App() {
     load(KEYS.settings, DEFAULT_SETTINGS)
   );
   const [mood, setMood] = useState('any');
-  const [enabled, setEnabled] = useState(() =>
-    load('enabled', DEFAULT_ENABLED)
-  );
   const [history, setHistory] = useState(() => load(KEYS.history, []));
   const [shuffleSeed, setShuffleSeed] = useState(0);
+
   const [settingsOpen, setSettingsOpen] = useState(() => {
     const s = load(KEYS.settings, DEFAULT_SETTINGS);
     return !s.letterboxdCsv && !s.steamId && !s.youtube;
   });
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const {
     items: movies,
@@ -76,6 +73,7 @@ export default function App() {
     () => [...movies, ...games, ...tracks],
     [movies, games, tracks]
   );
+
   const counts = useMemo(
     () => ({
       movie: movies.length,
@@ -84,27 +82,29 @@ export default function App() {
     }),
     [movies.length, games.length, tracks.length]
   );
-  const sourcesConnected = useMemo(
+
+  const connected = useMemo(
     () => ({
-      letterboxd: !!settings.letterboxdCsv,
-      steam: !!settings.steamId,
-      youtube: !!settings.youtube,
+      movie: !!settings.letterboxdCsv,
+      game: !!settings.steamId,
+      music: !!settings.youtube,
     }),
     [settings]
   );
-  const sourceCount =
-    +sourcesConnected.letterboxd +
-    +sourcesConnected.steam +
-    +sourcesConnected.youtube;
 
-  const filteredItems = useMemo(() => {
-    const byCategory = allItems.filter((it) => enabled[it.type]);
-    return filterByMood(byCategory, mood);
-  }, [allItems, mood, enabled]);
+  const filteredItems = useMemo(
+    () => filterByMood(allItems, mood),
+    [allItems, mood]
+  );
+  const matchedCount = useMemo(
+    () => countMatched(allItems, mood),
+    [allItems, mood]
+  );
 
+  // Reset shuffle whenever the underlying list changes.
   useEffect(() => {
     setShuffleSeed(0);
-  }, [filteredItems.length, mood, enabled]);
+  }, [filteredItems.length, mood]);
 
   const wheelItems = useMemo(() => {
     if (!shuffleSeed) return filteredItems;
@@ -115,11 +115,7 @@ export default function App() {
     setSettings(next);
     save(KEYS.settings, next);
   };
-  const handleToggleCategory = (id) => {
-    const next = { ...enabled, [id]: !enabled[id] };
-    setEnabled(next);
-    save('enabled', next);
-  };
+
   const handleResult = (item) => {
     setResult(item);
     const entry = {
@@ -128,103 +124,156 @@ export default function App() {
       type: item.type,
       title: item.title,
       url: item.url,
+      image: item.image,
     };
     const next = [entry, ...history].slice(0, HISTORY_LIMIT);
     setHistory(next);
     save(KEYS.history, next);
   };
+
   const handleClearHistory = () => {
     setHistory([]);
     save(KEYS.history, []);
   };
+
   const handleShuffle = () => setShuffleSeed(Date.now());
   const handleResetShuffle = () => setShuffleSeed(0);
 
+  const lastSpinEntry = history[0] || null;
+  const recentEntries = history.slice(1, 6); // up to 5 prior spins under the featured card
   const anyLoading = moviesLoading || gamesLoading || tracksLoading;
+  const anyError = moviesError || gamesError || tracksError;
 
   return (
-    <div className="bg-aurora min-h-screen flex flex-col">
-      <HeaderStrip
+    <div className="min-h-screen flex flex-col">
+      <TopNav
         totalItems={allItems.length}
-        sourceCount={sourceCount}
-        moodCount={5}
+        onOpenHistory={() => setHistoryOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
 
-      {/* Hero copy */}
-      <div className="px-6 md:px-10 pt-2 pb-8">
-        <h1 className="font-serif text-5xl md:text-7xl text-ink-50 leading-[1.05] max-w-3xl">
-          One <em className="text-ember-400 not-italic">
-            <span className="italic font-serif">random</span>
-          </em>
-          <br />
-          from your own lists
-        </h1>
-      </div>
-
-      {/* Two-column main */}
-      <main className="flex-1 px-6 md:px-10 pb-8 grid grid-cols-1 lg:grid-cols-[1fr_minmax(320px,400px)] gap-8 items-start">
-        {/* LEFT: wheel */}
-        <section className="flex items-center justify-center min-h-[460px]">
-          {filteredItems.length < 2 ? (
-            <EmptyState
-              count={filteredItems.length}
-              hasSources={sourceCount > 0}
-              onOpenSettings={() => setSettingsOpen(true)}
-            />
-          ) : (
-            <Wheel items={wheelItems} onResult={handleResult} />
-          )}
-        </section>
-
-        {/* RIGHT: mood + currently-in-wheel + filters + history */}
-        <aside className="space-y-6">
-          <div>
-            <span className="label-caps block mb-3">Mood</span>
-            <MoodSelector selected={mood} onSelect={setMood} />
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_minmax(420px,500px)] gap-0">
+        {/* LEFT: wheel pane */}
+        <section className="border-r border-paper-200 px-6 md:px-10 py-6 flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <span className="label-caps">The Wheel</span>
+            <div className="flex items-center gap-3">
+              <span className="label-caps font-mono">
+                Seed · {seedFromState(history.length, mood, shuffleSeed)}
+              </span>
+              <div className="flex items-center gap-2">
+                <PillBtn onClick={handleShuffle} active={shuffleSeed !== 0}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="16 3 21 3 21 8" />
+                    <line x1="4" y1="20" x2="21" y2="3" />
+                    <polyline points="21 16 21 21 16 21" />
+                    <line x1="15" y1="15" x2="21" y2="21" />
+                    <line x1="4" y1="4" x2="9" y2="9" />
+                  </svg>
+                  Shuffle
+                </PillBtn>
+                <PillBtn
+                  onClick={handleResetShuffle}
+                  disabled={shuffleSeed === 0}
+                  ghost
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="1 4 1 10 7 10" />
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                  </svg>
+                  Reset
+                </PillBtn>
+              </div>
+            </div>
           </div>
 
-          <CategoryFilter
-            enabled={enabled}
-            onToggle={handleToggleCategory}
-            counts={counts}
-          />
+          <div className="flex-1 flex items-center justify-center min-h-[480px]">
+            {wheelItems.length < 2 ? (
+              <EmptyState
+                count={wheelItems.length}
+                hasSources={
+                  connected.movie || connected.game || connected.music
+                }
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
+            ) : (
+              <Wheel items={wheelItems} onResult={handleResult} />
+            )}
+          </div>
+        </section>
 
-          <CurrentlyInWheel
-            items={wheelItems}
-            shuffled={shuffleSeed !== 0}
-            onShuffle={handleShuffle}
-            onReset={handleResetShuffle}
-          />
+        {/* RIGHT: sidebar pane */}
+        <aside className="px-6 md:px-8 py-6 space-y-7">
+          {/* PICK A MOOD */}
+          <section>
+            <div className="label-caps mb-2">Pick a mood</div>
+            <h2 className="font-serif text-3xl text-ink-900 leading-tight mb-1">
+              Tonight I want to <em className="italic">feel</em>
+            </h2>
+            <p className="text-[12px] text-ink-500 mb-4">
+              {mood === 'any'
+                ? 'Mood narrows the wheel by genre tags before each spin.'
+                : `Matched ${matchedCount} of ${allItems.length} items by genre — items without genre data also stay in the wheel.`}
+            </p>
+            <MoodSelector selected={mood} onSelect={setMood} />
+          </section>
 
-          {/* Loading / error rows */}
-          {(anyLoading ||
-            moviesError ||
-            gamesError ||
-            tracksError) && (
-            <div className="space-y-1 text-[11px] tracking-wide font-sans">
-              {moviesLoading && (
-                <Status>
-                  🎬 TMDB · {moviesProgress.done}/{moviesProgress.total}
-                </Status>
+          <Divider />
+
+          {/* SOURCES */}
+          <section>
+            <div className="label-caps mb-3">Sources</div>
+            <SourcesList
+              counts={counts}
+              connected={connected}
+              onConnect={() => setSettingsOpen(true)}
+            />
+            {(anyLoading || anyError) && (
+              <div className="space-y-1 text-[11px] tracking-wide font-sans mt-3">
+                {moviesLoading && (
+                  <Status>
+                    🎬 TMDB · {moviesProgress.done}/{moviesProgress.total}
+                  </Status>
+                )}
+                {gamesLoading && (
+                  <Status>
+                    🎮 Steam · {gamesProgress.done}/{gamesProgress.total}
+                  </Status>
+                )}
+                {tracksLoading && <Status>🎵 YouTube</Status>}
+                {moviesError && <Status error>🎬 {moviesError}</Status>}
+                {gamesError && <Status error>🎮 {gamesError}</Status>}
+                {tracksError && <Status error>🎵 {tracksError}</Status>}
+              </div>
+            )}
+          </section>
+
+          <Divider />
+
+          {/* LAST SPIN + recent */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <span className="label-caps">Last spin</span>
+              {history.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen(true)}
+                  className="label-caps text-ink-500 hover:text-ember-500 transition-colors"
+                >
+                  See all · {history.length}
+                </button>
               )}
-              {gamesLoading && (
-                <Status>
-                  🎮 Steam · {gamesProgress.done}/{gamesProgress.total}
-                </Status>
-              )}
-              {tracksLoading && <Status>🎵 YouTube</Status>}
-              {moviesError && <Status error>🎬 {moviesError}</Status>}
-              {gamesError && <Status error>🎮 {gamesError}</Status>}
-              {tracksError && <Status error>🎵 {tracksError}</Status>}
             </div>
-          )}
-
-          <History entries={history} onClear={handleClearHistory} />
+            <LastSpin entry={lastSpinEntry} />
+            {recentEntries.length > 0 && (
+              <>
+                <div className="label-caps mt-5 mb-1">Earlier today</div>
+                <RecentList entries={recentEntries} />
+              </>
+            )}
+          </section>
         </aside>
       </main>
-
-      <FooterStrip counts={counts} sources={sourcesConnected} />
 
       <Settings
         open={settingsOpen}
@@ -233,8 +282,16 @@ export default function App() {
         onSave={handleSaveSettings}
       />
 
+      <HistoryModal
+        open={historyOpen}
+        entries={history}
+        onClear={handleClearHistory}
+        onClose={() => setHistoryOpen(false)}
+      />
+
       <ResultModal
         result={result}
+        mood={mood}
         onClose={() => setResult(null)}
         onSpinAgain={() => setResult(null)}
       />
@@ -242,34 +299,59 @@ export default function App() {
   );
 }
 
+function Divider() {
+  return <div className="h-px bg-paper-200" />;
+}
+
+function PillBtn({ children, active, ghost, ...props }) {
+  const base =
+    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] tracking-widest2 uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed';
+  const tone = active
+    ? 'bg-ink-900 text-paper-50 hover:bg-ink-700'
+    : ghost
+      ? 'text-ink-500 hover:text-ink-900 hover:bg-paper-100 border border-paper-200'
+      : 'text-ink-900 hover:bg-paper-100 border border-paper-200';
+  return (
+    <button type="button" {...props} className={`${base} ${tone}`}>
+      {children}
+    </button>
+  );
+}
+
 function Status({ children, error }) {
   return (
-    <div className={error ? 'text-ember-400' : 'text-ink-400'}>{children}</div>
+    <div className={error ? 'text-ember-600' : 'text-ink-500'}>{children}</div>
   );
 }
 
 function EmptyState({ count, hasSources, onOpenSettings }) {
   return (
     <div className="text-center max-w-sm">
-      <div className="font-serif text-3xl text-ink-100 italic leading-tight mb-3">
+      <div className="font-serif text-3xl text-ink-900 italic leading-tight mb-3">
         Колесо ждёт
       </div>
-      <p className="text-ink-400 text-sm leading-relaxed mb-5">
+      <p className="text-ink-500 text-sm leading-relaxed mb-5">
         {hasSources
-          ? `Под эти настройки подходит ${count} элемент${
+          ? `Под это настроение подходит ${count} элемент${
               count === 1 ? '' : 'ов'
-            }. Включи больше категорий или смени настроение.`
+            }. Смени настроение или подключи ещё источник.`
           : 'Подключи хотя бы один источник, чтобы крутить колесо.'}
       </p>
-      {!hasSources && (
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          className="px-5 py-2 rounded-lg bg-ember-500 hover:bg-ember-400 text-white text-sm font-medium tracking-wide"
-        >
-          Connect sources
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        className="px-5 py-2 rounded-lg bg-ink-900 hover:bg-ink-700 text-paper-50 text-sm font-medium tracking-wide"
+      >
+        {hasSources ? 'Open settings' : 'Connect sources'}
+      </button>
     </div>
   );
+}
+
+// Tiny pseudo-seed for the editorial header text — not cryptographic, just
+// flavour. Changes on every spin / mood / shuffle so the page feels alive.
+function seedFromState(historyLen, mood, shuffleSeed) {
+  const base =
+    (historyLen * 8675309 + mood.charCodeAt(0) * 1009 + (shuffleSeed | 0)) >>> 0;
+  return '0x' + base.toString(16).toUpperCase().padStart(5, '0').slice(0, 5);
 }

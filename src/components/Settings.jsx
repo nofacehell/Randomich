@@ -9,7 +9,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
   const [csvError, setCsvError] = useState(null);
   const fileRef = useRef(null);
 
-  // Re-sync local state when modal reopens after settings changed elsewhere.
   useEffect(() => {
     if (open) {
       setCsv(initial?.letterboxdCsv || '');
@@ -21,7 +20,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
     }
   }, [open, initial]);
 
-  // Esc to close
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === 'Escape' && onClose();
@@ -74,22 +72,24 @@ export default function Settings({ open, onClose, initial, onSave }) {
 
   return (
     <div
-      className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-40 bg-ink-900/30 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-ink-900 border border-ink-500/20 rounded-2xl overflow-hidden shadow-2xl"
+        className="w-full max-w-lg bg-paper-50 border border-paper-200 rounded-2xl overflow-hidden shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 pt-6 pb-3 flex items-center justify-between">
           <div>
             <div className="label-caps">Connect your sources</div>
-            <h2 className="font-serif text-2xl text-ink-50 mt-1">Настройки</h2>
+            <h2 className="font-serif text-2xl text-ink-900 mt-1">
+              Настройки <em className="italic">источников</em>
+            </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full text-ink-400 hover:text-ink-50 hover:bg-ink-950 transition-colors flex items-center justify-center"
+            className="w-8 h-8 rounded-full text-ink-500 hover:text-ink-900 hover:bg-paper-100 transition-colors flex items-center justify-center"
             aria-label="Close"
           >
             ✕
@@ -110,12 +110,12 @@ export default function Settings({ open, onClose, initial, onSave }) {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="px-3 py-1.5 rounded-md bg-ember-500 hover:bg-ember-400 text-white text-[12px] tracking-wide font-medium transition-colors"
+                className="px-3 py-1.5 rounded-md bg-ink-900 hover:bg-ink-700 text-paper-50 text-[12px] tracking-wide font-medium transition-colors"
               >
                 {csvName ? 'Заменить файл' : 'Выбрать файл'}
               </button>
               {csvName && (
-                <span className="text-[11px] text-ink-100 truncate max-w-[260px]">
+                <span className="text-[11px] text-ink-700 truncate max-w-[260px]">
                   📎 {csvName}
                 </span>
               )}
@@ -123,17 +123,17 @@ export default function Settings({ open, onClose, initial, onSave }) {
                 <button
                   type="button"
                   onClick={handleClearCsv}
-                  className="text-[11px] text-ink-400 hover:text-ember-400 ml-auto"
+                  className="text-[11px] text-ink-500 hover:text-ember-500 ml-auto"
                 >
                   ✕ убрать
                 </button>
               )}
             </div>
             {csvError && (
-              <span className="block text-[11px] text-ember-400 mt-1.5">{csvError}</span>
+              <span className="block text-[11px] text-ember-600 mt-1.5">{csvError}</span>
             )}
             <span className="block text-[11px] text-ink-500 mt-2 leading-relaxed">
-              Letterboxd → Settings → Import & Export → Export your data → <code className="text-ink-400 font-mono">watchlist.csv</code> из архива
+              Letterboxd → Settings → Import & Export → Export your data → <code className="text-ink-700 font-mono">watchlist.csv</code> из архива
             </span>
           </div>
 
@@ -155,18 +155,18 @@ export default function Settings({ open, onClose, initial, onSave }) {
           <div className="flex items-center gap-3 pt-2">
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-ember-500 hover:bg-ember-400 text-white transition-colors text-sm font-medium tracking-wide"
+              className="px-5 py-2 rounded-lg bg-ink-900 hover:bg-ink-700 text-paper-50 transition-colors text-sm font-medium tracking-wide"
             >
               Сохранить
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-lg border border-ink-500/30 text-ink-400 hover:text-ink-50 hover:border-ink-400 transition-colors text-sm tracking-wide"
+              className="px-5 py-2 rounded-lg border border-paper-200 text-ink-700 hover:bg-paper-100 transition-colors text-sm tracking-wide"
             >
               Закрыть
             </button>
-            {saved && <span className="text-ember-400 text-xs">✓ Сохранено</span>}
+            {saved && <span className="text-ember-500 text-xs">✓ Сохранено</span>}
           </div>
         </form>
       </div>
@@ -183,7 +183,7 @@ function Field({ label, placeholder, value, onChange, hint }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 rounded-lg bg-ink-950 border border-ink-500/20 focus:border-ember-400 focus:outline-none transition-colors text-sm font-mono text-ink-50 placeholder:text-ink-500"
+        className="w-full px-3 py-2 rounded-lg bg-paper-100 border border-paper-200 focus:border-ink-900 focus:outline-none transition-colors text-sm font-mono text-ink-900 placeholder:text-ink-400"
       />
       {hint && <span className="block text-[11px] text-ink-500 mt-1.5">{hint}</span>}
     </label>

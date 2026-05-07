@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { Wheel as RouletteWheel } from 'react-custom-roulette';
 
-// Per-type segment palettes. Two near-shades per type so adjacent same-type
-// sectors still show a subtle break, but the type identity dominates.
-// Tuned dark so the wheel keeps the editorial mood, not a Twister board.
+// Cream-on-cream segment shades — type identity comes from a coloured dot
+// on the rim, not from saturated sectors. Keeps the editorial mood.
 const TYPE_SHADES = {
-  movie: ['#3a1a0a', '#2c1408'], // ember-tinted
-  game: ['#0f2a1d', '#0b2118'],  // green-tinted
-  music: ['#28163a', '#1f112c'], // violet-tinted
+  movie: ['#efe5cf', '#e7dabe'],
+  game: ['#e8e3d0', '#dfd6bb'],
+  music: ['#ece1d5', '#e3d4c1'],
 };
-const FALLBACK_SHADES = ['#15110d', '#1a1410'];
+const FALLBACK_SHADES = ['#efe5cf', '#e7dabe'];
 
-export default function Wheel({ items, onResult, idleLabel = 'SPIN' }) {
+const RIM_TEXT_THRESHOLD = 25;
+
+export default function Wheel({ items, onResult }) {
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeIndex, setPrizeIndex] = useState(0);
 
@@ -23,13 +24,15 @@ export default function Wheel({ items, onResult, idleLabel = 'SPIN' }) {
     );
   }
 
+  const showText = items.length <= RIM_TEXT_THRESHOLD;
+
   const data = items.map((item, i) => {
     const palette = TYPE_SHADES[item.type] || FALLBACK_SHADES;
     return {
-      option: '', // no labels — titles live in the side list
+      option: showText ? truncate(item.title, 18) : '',
       style: {
         backgroundColor: palette[i % palette.length],
-        textColor: 'transparent',
+        textColor: showText ? '#3a3327' : 'transparent',
       },
     };
   });
@@ -41,9 +44,6 @@ export default function Wheel({ items, onResult, idleLabel = 'SPIN' }) {
     setMustSpin(true);
   };
 
-  // Hide thin segment lines for very long lists — at 200+ items they're noise.
-  const denseList = items.length > 60;
-
   return (
     <div className="wheel-stage relative">
       <RouletteWheel
@@ -54,53 +54,59 @@ export default function Wheel({ items, onResult, idleLabel = 'SPIN' }) {
           setMustSpin(false);
           onResult(items[prizeIndex]);
         }}
-        outerBorderColor="#0c0a08"
+        outerBorderColor="#faf6ec"
         outerBorderWidth={0}
-        innerBorderColor="#0c0a08"
+        innerBorderColor="#faf6ec"
         innerBorderWidth={0}
-        innerRadius={26}
-        radiusLineColor={denseList ? 'transparent' : '#231b14'}
-        radiusLineWidth={denseList ? 0 : 1}
+        innerRadius={28}
+        radiusLineColor="#d8caa9"
+        radiusLineWidth={showText ? 1 : 0}
         fontFamily="Inter, sans-serif"
-        fontSize={1}
-        textDistance={0}
+        fontSize={10}
+        fontWeight={400}
+        textDistance={88}
+        perpendicularText={false}
         pointerProps={{
           style: {
-            filter: 'drop-shadow(0 2px 6px rgba(247, 107, 28, 0.4))',
+            filter: 'drop-shadow(0 2px 4px rgba(247, 107, 28, 0.25))',
           },
         }}
       />
 
-      {/* Centre hub — sits exactly over the wheel via absolute centring. */}
+      {/* Centre hub — the SPIN button. */}
       <button
         type="button"
         onClick={handleSpinClick}
         disabled={mustSpin}
-        className="wheel-hub absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-950 border border-ink-500/30 hover:border-ember-400 transition-all disabled:cursor-not-allowed group flex flex-col items-center justify-center"
+        className="wheel-hub absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-paper-50 border border-ink-900/15 hover:border-ember-500 transition-colors disabled:cursor-not-allowed group flex flex-col items-center justify-center"
       >
-        <span className="label-caps text-ink-500 text-[9px] mb-1">
-          {items.length} items
-        </span>
         {mustSpin ? (
           <>
-            <span className="font-serif italic text-ember-400 text-xl leading-none">
-              spinning
-            </span>
-            <span className="label-caps text-ink-500 text-[9px] mt-2">
+            <span className="label-caps text-ember-500 text-[8px] mb-1">
               picking your fate
+            </span>
+            <span className="font-serif italic text-ink-900 text-2xl leading-none">
+              spinning
             </span>
           </>
         ) : (
           <>
-            <span className="font-serif text-ink-50 text-3xl leading-none group-hover:text-ember-400 transition-colors">
-              {idleLabel}
+            <span className="label-caps text-ink-500 text-[9px] mb-1">
+              {items.length} items
             </span>
-            <span className="label-caps text-ink-500 text-[9px] mt-2">
-              tap to spin
+            <span className="font-serif text-ink-900 text-2xl leading-none group-hover:text-ember-500 transition-colors">
+              SPIN
+            </span>
+            <span className="label-caps text-ink-500 text-[8px] mt-1.5">
+              tap below
             </span>
           </>
         )}
       </button>
     </div>
   );
+}
+
+function truncate(s, n) {
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
 }
