@@ -1,9 +1,8 @@
 const TYPE_DOT = {
   movie: '#ff8a3a',
   game: '#7dd3a8',
-  music: '#c084fc',
 };
-const TYPE_LABEL = { movie: 'Film', game: 'Game', music: 'Music' };
+const TYPE_LABEL = { movie: 'Film', game: 'Game' };
 
 // Big featured card for the most recent spin.
 export default function LastSpin({ entry }) {

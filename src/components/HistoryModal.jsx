@@ -3,9 +3,8 @@ import { useEffect } from 'react';
 const TYPE_DOT = {
   movie: '#ff8a3a',
   game: '#7dd3a8',
-  music: '#c084fc',
 };
-const TYPE_LABEL = { movie: 'Film', game: 'Game', music: 'Music' };
+const TYPE_LABEL = { movie: 'Film', game: 'Game' };
 
 export default function HistoryModal({ open, entries, onClear, onClose }) {
   useEffect(() => {

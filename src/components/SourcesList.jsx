@@ -3,7 +3,6 @@
 const ROWS = [
   { id: 'movie', label: 'Letterboxd watchlist', unit: 'films', dot: '#ff8a3a' },
   { id: 'game', label: 'Steam wishlist', unit: 'games', dot: '#7dd3a8' },
-  { id: 'music', label: 'YouTube playlist', unit: 'tracks', dot: '#c084fc' },
 ];
 
 export default function SourcesList({ counts, connected, onConnect }) {

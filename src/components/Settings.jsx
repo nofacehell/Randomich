@@ -4,7 +4,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
   const [csvName, setCsvName] = useState(initial?.letterboxdFileName || '');
   const [csv, setCsv] = useState(initial?.letterboxdCsv || '');
   const [steamId, setSteamId] = useState(initial?.steamId || '');
-  const [youtube, setYoutube] = useState(initial?.youtube || '');
   const [saved, setSaved] = useState(false);
   const [csvError, setCsvError] = useState(null);
   const fileRef = useRef(null);
@@ -14,7 +13,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
       setCsv(initial?.letterboxdCsv || '');
       setCsvName(initial?.letterboxdFileName || '');
       setSteamId(initial?.steamId || '');
-      setYoutube(initial?.youtube || '');
       setCsvError(null);
       setSaved(false);
     }
@@ -61,7 +59,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
       letterboxdCsv: csv,
       letterboxdFileName: csvName,
       steamId: steamId.trim(),
-      youtube: youtube.trim(),
     });
     setSaved(true);
     setTimeout(() => {
@@ -143,13 +140,6 @@ export default function Settings({ open, onClose, initial, onSave }) {
             value={steamId}
             onChange={setSteamId}
             hint="Только числовой ID. Найти на steamid.io. Профиль должен быть публичным."
-          />
-          <Field
-            label="🎵 YouTube playlist · URL"
-            placeholder="https://youtube.com/playlist?list=..."
-            value={youtube}
-            onChange={setYoutube}
-            hint="Публичная или unlisted ссылка с параметром ?list="
           />
 
           <div className="flex items-center gap-3 pt-2">

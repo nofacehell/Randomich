@@ -6,7 +6,6 @@ import { Wheel as RouletteWheel } from 'react-custom-roulette';
 const TYPE_SHADES = {
   movie: ['#efe5cf', '#e7dabe'],
   game: ['#e8e3d0', '#dfd6bb'],
-  music: ['#ece1d5', '#e3d4c1'],
 };
 const FALLBACK_SHADES = ['#efe5cf', '#e7dabe'];
 

@@ -1,12 +1,11 @@
 # 🎡 Wheel of Fate
 
-Web-приложение «колесо фортуны»: выбираешь настроение, колесо случайно выдаёт что посмотреть / во что поиграть / что послушать **из твоих собственных списков**. Без ручного выбора — только рандом по твоим источникам.
+Web-приложение «колесо фортуны»: выбираешь настроение, колесо случайно выдаёт что посмотреть или во что поиграть **из твоих собственных списков**. Без ручного выбора — только рандом по твоим источникам.
 
-Три источника:
+Два источника:
 
 - 🎬 **Фильмы** — Letterboxd watchlist (через CSV-экспорт)
 - 🎮 **Игры** — Steam wishlist (через публичный API)
-- 🎵 **Музыка** — YouTube playlist (через Data API v3)
 
 Жанры и постеры для фильмов подтягиваются с TMDB. Настроение фильтрует контент по жанрам/тегам через словарь mood → genres.
 
@@ -18,7 +17,7 @@ Web-приложение «колесо фортуны»: выбираешь н�
 git clone https://github.com/nofacehell/Randomich.git
 cd Randomich
 npm install
-cp .env.example .env   # затем впиши ключи (см. ниже)
+cp .env.example .env   # затем впиши TMDB-ключ (см. ниже)
 npm run dev            # http://localhost:5173
 ```
 
@@ -26,7 +25,7 @@ npm run dev            # http://localhost:5173
 
 ## API-ключи
 
-Нужны два бесплатных ключа: **TMDB** для жанров/постеров фильмов, **YouTube** для плейлистов. Steam работает без ключа (но через локальный proxy, см. ниже).
+Нужен один бесплатный ключ — **TMDB** для жанров и постеров фильмов. Steam работает без ключа через локальный proxy (а на Vercel — через serverless-функцию `api/steam.js`).
 
 ### TMDB (для фильмов)
 
@@ -37,17 +36,6 @@ npm run dev            # http://localhost:5173
 5. Положить в `.env`:
    ```
    VITE_TMDB_API_KEY=your_v3_key_here
-   ```
-
-### YouTube Data API v3 (для музыки)
-
-1. Зайти в Google Cloud Console: https://console.cloud.google.com/
-2. Создать проект (или выбрать существующий)
-3. **APIs & Services → Library** → найти **«YouTube Data API v3»** → **Enable**
-4. **APIs & Services → Credentials** → **Create credentials → API Key**
-5. Скопировать ключ в `.env`:
-   ```
-   VITE_YOUTUBE_API_KEY=your_youtube_key_here
    ```
 
 ---
@@ -74,10 +62,6 @@ CSV содержит только название и год — жанры и �
 
 ⚠️ Профиль и wishlist должны быть **публичными** в настройках Steam Privacy.
 
-### 🎵 YouTube playlist URL
-
-Просто URL вида `https://www.youtube.com/playlist?list=...`. Подходит публичный или unlisted (с прямой ссылкой). Достаём до 200 треков (4 страницы по 50), пропускаются Private/Deleted видео.
-
 ---
 
 ## Стек
@@ -94,13 +78,14 @@ CSV содержит только название и год — жанры и �
 ```
 .
 ├── api/                       # Vercel serverless functions
+│   ├── _steam-core.js
 │   └── steam.js
 ├── dev-api/                   # Vite dev middleware, имитирует /api/* локально
 │   ├── plugin.js
 │   └── steam.js
 ├── src/
 │   ├── components/            # TopNav, Wheel, MoodSelector, ResultModal, …
-│   ├── hooks/                 # useLetterboxd, useSteam, useYoutube
+│   ├── hooks/                 # useLetterboxd, useSteam
 │   ├── utils/                 # csv, moodFilter, storage, tmdb
 │   ├── App.jsx                # оркестрация
 │   ├── index.css              # Tailwind + кастом-классы (label-caps, wheel-stage)
@@ -126,10 +111,9 @@ npm run preview  # просмотр прод-сборки локально
 ```bash
 npx vercel
 # при первом запуске — выбрать scope, подтвердить
-# затем добавить env-переменные:
+# затем добавить env-переменную:
 npx vercel env add VITE_TMDB_API_KEY
-npx vercel env add VITE_YOUTUBE_API_KEY
 npx vercel --prod
 ```
 
-Или через дашборд Vercel: импорт репозитория → добавить две env-переменные → deploy.
+Или через дашборд Vercel: импорт репозитория → добавить env-переменную → deploy.

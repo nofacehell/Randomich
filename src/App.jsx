@@ -9,7 +9,6 @@ import SourcesList from './components/SourcesList';
 import LastSpin, { RecentList } from './components/LastSpin';
 import { useLetterboxd } from './hooks/useLetterboxd';
 import { useSteam } from './hooks/useSteam';
-import { useYoutube } from './hooks/useYoutube';
 import { filterByMood, countMatched } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
@@ -17,7 +16,6 @@ const DEFAULT_SETTINGS = {
   letterboxdCsv: '',
   letterboxdFileName: '',
   steamId: '',
-  youtube: '',
 };
 const HISTORY_LIMIT = 10;
 
@@ -45,7 +43,7 @@ export default function App() {
 
   const [settingsOpen, setSettingsOpen] = useState(() => {
     const s = load(KEYS.settings, DEFAULT_SETTINGS);
-    return !s.letterboxdCsv && !s.steamId && !s.youtube;
+    return !s.letterboxdCsv && !s.steamId;
   });
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -63,31 +61,23 @@ export default function App() {
     progress: gamesProgress,
   } = useSteam(settings.steamId);
 
-  const {
-    items: tracks,
-    loading: tracksLoading,
-    error: tracksError,
-  } = useYoutube(settings.youtube);
-
   const allItems = useMemo(
-    () => [...movies, ...games, ...tracks],
-    [movies, games, tracks]
+    () => [...movies, ...games],
+    [movies, games]
   );
 
   const counts = useMemo(
     () => ({
       movie: movies.length,
       game: games.length,
-      music: tracks.length,
     }),
-    [movies.length, games.length, tracks.length]
+    [movies.length, games.length]
   );
 
   const connected = useMemo(
     () => ({
       movie: !!settings.letterboxdCsv,
       game: !!settings.steamId,
-      music: !!settings.youtube,
     }),
     [settings]
   );
@@ -141,8 +131,8 @@ export default function App() {
 
   const lastSpinEntry = history[0] || null;
   const recentEntries = history.slice(1, 6); // up to 5 prior spins under the featured card
-  const anyLoading = moviesLoading || gamesLoading || tracksLoading;
-  const anyError = moviesError || gamesError || tracksError;
+  const anyLoading = moviesLoading || gamesLoading;
+  const anyError = moviesError || gamesError;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -240,10 +230,8 @@ export default function App() {
                     🎮 Steam · {gamesProgress.done}/{gamesProgress.total}
                   </Status>
                 )}
-                {tracksLoading && <Status>🎵 YouTube</Status>}
                 {moviesError && <Status error>🎬 {moviesError}</Status>}
                 {gamesError && <Status error>🎮 {gamesError}</Status>}
-                {tracksError && <Status error>🎵 {tracksError}</Status>}
               </div>
             )}
           </section>

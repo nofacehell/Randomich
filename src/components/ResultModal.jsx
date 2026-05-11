@@ -1,7 +1,6 @@
 const TYPE_BADGE = {
   movie: 'Letterboxd',
   game: 'Steam',
-  music: 'YouTube',
 };
 
 const MOOD_LABEL = {
