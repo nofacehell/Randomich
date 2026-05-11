@@ -4,6 +4,9 @@ export default function Settings({ open, onClose, initial, onSave }) {
   const [csvName, setCsvName] = useState(initial?.letterboxdFileName || '');
   const [csv, setCsv] = useState(initial?.letterboxdCsv || '');
   const [steamId, setSteamId] = useState(initial?.steamId || '');
+  const [steamApiKey, setSteamApiKey] = useState(initial?.steamApiKey || '');
+  const [useWishlist, setUseWishlist] = useState(initial?.useWishlist ?? true);
+  const [useLibrary, setUseLibrary] = useState(initial?.useLibrary ?? false);
   const [saved, setSaved] = useState(false);
   const [csvError, setCsvError] = useState(null);
   const fileRef = useRef(null);
@@ -13,6 +16,9 @@ export default function Settings({ open, onClose, initial, onSave }) {
       setCsv(initial?.letterboxdCsv || '');
       setCsvName(initial?.letterboxdFileName || '');
       setSteamId(initial?.steamId || '');
+      setSteamApiKey(initial?.steamApiKey || '');
+      setUseWishlist(initial?.useWishlist ?? true);
+      setUseLibrary(initial?.useLibrary ?? false);
       setCsvError(null);
       setSaved(false);
     }
@@ -59,6 +65,9 @@ export default function Settings({ open, onClose, initial, onSave }) {
       letterboxdCsv: csv,
       letterboxdFileName: csvName,
       steamId: steamId.trim(),
+      steamApiKey: steamApiKey.trim(),
+      useWishlist,
+      useLibrary,
     });
     setSaved(true);
     setTimeout(() => {
@@ -142,6 +151,44 @@ export default function Settings({ open, onClose, initial, onSave }) {
             hint="Только числовой ID. Найти на steamid.io. Профиль должен быть публичным."
           />
 
+          <div className="space-y-2 pl-1">
+            <CheckboxRow
+              checked={useWishlist}
+              onChange={setUseWishlist}
+              label="Wishlist"
+              hint="Игры, которые ты хочешь купить"
+            />
+            <CheckboxRow
+              checked={useLibrary}
+              onChange={setUseLibrary}
+              label="Library (owned games)"
+              hint="Игры, которые у тебя уже есть. Нужен API-key ниже."
+            />
+          </div>
+
+          {useLibrary && (
+            <Field
+              label="🔑 Steam Web API key"
+              placeholder="32-символьная строка"
+              value={steamApiKey}
+              onChange={setSteamApiKey}
+              hint={
+                <>
+                  Бесплатно на{' '}
+                  <a
+                    href="https://steamcommunity.com/dev/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-ink-700 underline hover:text-ember-500"
+                  >
+                    steamcommunity.com/dev/apikey
+                  </a>
+                  . Нужен только для библиотеки — wishlist работает без ключа.
+                </>
+              }
+            />
+          )}
+
           <div className="flex items-center gap-3 pt-2">
             <button
               type="submit"
@@ -175,7 +222,30 @@ function Field({ label, placeholder, value, onChange, hint }) {
         placeholder={placeholder}
         className="w-full px-3 py-2 rounded-lg bg-paper-100 border border-paper-200 focus:border-ink-900 focus:outline-none transition-colors text-sm font-mono text-ink-900 placeholder:text-ink-400"
       />
-      {hint && <span className="block text-[11px] text-ink-500 mt-1.5">{hint}</span>}
+      {hint && (
+        <span className="block text-[11px] text-ink-500 mt-1.5">{hint}</span>
+      )}
+    </label>
+  );
+}
+
+function CheckboxRow({ checked, onChange, label, hint }) {
+  return (
+    <label className="flex items-start gap-2.5 cursor-pointer group">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 accent-ink-900"
+      />
+      <span className="flex-1">
+        <span className="text-sm text-ink-900 group-hover:text-ember-500 transition-colors">
+          {label}
+        </span>
+        {hint && (
+          <span className="block text-[11px] text-ink-500 mt-0.5">{hint}</span>
+        )}
+      </span>
     </label>
   );
 }

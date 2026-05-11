@@ -8,7 +8,7 @@ import MoodSelector from './components/MoodSelector';
 import SourcesList from './components/SourcesList';
 import LastSpin, { RecentList } from './components/LastSpin';
 import { useLetterboxd } from './hooks/useLetterboxd';
-import { useSteam } from './hooks/useSteam';
+import { useSteam, useSteamLibrary } from './hooks/useSteam';
 import { filterByMood, countMatched } from './utils/moodFilter';
 import { load, save, KEYS } from './utils/storage';
 
@@ -16,6 +16,9 @@ const DEFAULT_SETTINGS = {
   letterboxdCsv: '',
   letterboxdFileName: '',
   steamId: '',
+  steamApiKey: '',
+  useWishlist: true,
+  useLibrary: false,
 };
 const HISTORY_LIMIT = 10;
 
@@ -55,16 +58,30 @@ export default function App() {
   } = useLetterboxd(settings.letterboxdCsv);
 
   const {
-    items: games,
-    loading: gamesLoading,
-    error: gamesError,
-    progress: gamesProgress,
-  } = useSteam(settings.steamId);
+    items: wishlistGames,
+    loading: wishlistLoading,
+    error: wishlistError,
+    progress: wishlistProgress,
+  } = useSteam(settings.useWishlist ? settings.steamId : null);
 
-  const allItems = useMemo(
-    () => [...movies, ...games],
-    [movies, games]
+  const {
+    items: libraryGames,
+    loading: libraryLoading,
+    error: libraryError,
+    progress: libraryProgress,
+  } = useSteamLibrary(
+    settings.useLibrary ? settings.steamId : null,
+    settings.useLibrary ? settings.steamApiKey : null
   );
+
+  // De-dup if a game shows up in both wishlist and library (rare but
+  // possible if someone wishlists DLC for a game they own). Library wins.
+  const games = useMemo(() => {
+    const seen = new Set(libraryGames.map((g) => g.url));
+    return [...libraryGames, ...wishlistGames.filter((g) => !seen.has(g.url))];
+  }, [libraryGames, wishlistGames]);
+
+  const allItems = useMemo(() => [...movies, ...games], [movies, games]);
 
   const counts = useMemo(
     () => ({
@@ -77,7 +94,9 @@ export default function App() {
   const connected = useMemo(
     () => ({
       movie: !!settings.letterboxdCsv,
-      game: !!settings.steamId,
+      game:
+        !!settings.steamId &&
+        (settings.useWishlist || (settings.useLibrary && !!settings.steamApiKey)),
     }),
     [settings]
   );
@@ -131,8 +150,8 @@ export default function App() {
 
   const lastSpinEntry = history[0] || null;
   const recentEntries = history.slice(1, 6); // up to 5 prior spins under the featured card
-  const anyLoading = moviesLoading || gamesLoading;
-  const anyError = moviesError || gamesError;
+  const anyLoading = moviesLoading || wishlistLoading || libraryLoading;
+  const anyError = moviesError || wishlistError || libraryError;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -225,13 +244,19 @@ export default function App() {
                     🎬 TMDB · {moviesProgress.done}/{moviesProgress.total}
                   </Status>
                 )}
-                {gamesLoading && (
+                {wishlistLoading && (
                   <Status>
-                    🎮 Steam · {gamesProgress.done}/{gamesProgress.total}
+                    🎮 Steam wishlist · {wishlistProgress.done}/{wishlistProgress.total}
+                  </Status>
+                )}
+                {libraryLoading && (
+                  <Status>
+                    🎮 Steam library · {libraryProgress.done}/{libraryProgress.total}
                   </Status>
                 )}
                 {moviesError && <Status error>🎬 {moviesError}</Status>}
-                {gamesError && <Status error>🎮 {gamesError}</Status>}
+                {wishlistError && <Status error>🎮 {wishlistError}</Status>}
+                {libraryError && <Status error>🎮 {libraryError}</Status>}
               </div>
             )}
           </section>

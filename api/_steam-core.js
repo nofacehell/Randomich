@@ -10,6 +10,7 @@ export async function handleSteam(req, res, url) {
   const action = params.get('action');
 
   if (action === 'wishlist') return wishlist(params, res);
+  if (action === 'library') return library(params, res);
   if (action === 'appdetails') return appdetails(params, res);
 
   return json(res, 400, { error: 'unknown action' });
@@ -33,6 +34,57 @@ async function wishlist(params, res) {
     res,
     200,
     { items: data?.response?.items || [] },
+    { 'cache-control': 'public, max-age=300' }
+  );
+}
+
+async function library(params, res) {
+  const steamid = params.get('steamid');
+  const apiKey = params.get('key');
+  if (!steamid || !/^\d{17}$/.test(steamid)) {
+    return json(res, 400, { error: 'steamid must be a 17-digit number' });
+  }
+  if (!apiKey) {
+    return json(res, 400, {
+      error: 'steam_key_required',
+      message:
+        'Steam Web API key required. Get one at https://steamcommunity.com/dev/apikey',
+    });
+  }
+
+  const target =
+    `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/` +
+    `?key=${encodeURIComponent(apiKey)}` +
+    `&steamid=${steamid}` +
+    `&include_appinfo=true` +
+    `&include_played_free_games=true` +
+    `&format=json`;
+
+  const upstream = await fetch(target);
+  if (upstream.status === 401 || upstream.status === 403) {
+    return json(res, upstream.status, {
+      error: 'invalid_key_or_private',
+      message:
+        'Steam rejected the API key, or the profile’s game details are private.',
+    });
+  }
+  if (!upstream.ok) {
+    return json(res, 502, { error: 'upstream_error', status: upstream.status });
+  }
+
+  const data = await upstream.json();
+  const games = data?.response?.games || [];
+  // Shape down to what the client actually uses — avoids leaking playtime
+  // details we don't need.
+  const slim = games.map((g) => ({
+    appid: g.appid,
+    name: g.name,
+    playtime_forever: g.playtime_forever || 0,
+  }));
+  return json(
+    res,
+    200,
+    { games: slim },
     { 'cache-control': 'public, max-age=300' }
   );
 }
