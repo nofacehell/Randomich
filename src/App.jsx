@@ -15,11 +15,13 @@ import { load, save, KEYS } from './utils/storage';
 const DEFAULT_SETTINGS = {
   letterboxdCsv: '',
   letterboxdFileName: '',
+  letterboxdImportedAt: null,
   steamId: '',
   steamApiKey: '',
   useWishlist: true,
   useLibrary: false,
 };
+const DEFAULT_ENABLED = { movie: true, game: true };
 const HISTORY_LIMIT = 10;
 
 // Seeded Fisher-Yates so a given seed always produces the same permutation —
@@ -42,7 +44,12 @@ export default function App() {
   );
   const [mood, setMood] = useState('any');
   const [history, setHistory] = useState(() => load(KEYS.history, []));
+  const [enabled, setEnabled] = useState(() => ({
+    ...DEFAULT_ENABLED,
+    ...load('enabled', {}),
+  }));
   const [shuffleSeed, setShuffleSeed] = useState(0);
+  const [muted, setMuted] = useState(() => load('muted', false));
 
   const [settingsOpen, setSettingsOpen] = useState(() => {
     const s = load(KEYS.settings, DEFAULT_SETTINGS);
@@ -101,19 +108,24 @@ export default function App() {
     [settings]
   );
 
+  const itemsByEnabledType = useMemo(
+    () => allItems.filter((it) => enabled[it.type]),
+    [allItems, enabled]
+  );
   const filteredItems = useMemo(
-    () => filterByMood(allItems, mood),
-    [allItems, mood]
+    () => filterByMood(itemsByEnabledType, mood),
+    [itemsByEnabledType, mood]
   );
   const matchedCount = useMemo(
-    () => countMatched(allItems, mood),
-    [allItems, mood]
+    () => countMatched(itemsByEnabledType, mood),
+    [itemsByEnabledType, mood]
   );
 
-  // Reset shuffle whenever the underlying list changes.
+  // Reset shuffle whenever the underlying list changes (mood, enabled types,
+  // total count — any of these invalidates the previous permutation).
   useEffect(() => {
     setShuffleSeed(0);
-  }, [filteredItems.length, mood]);
+  }, [filteredItems.length, mood, enabled.movie, enabled.game]);
 
   const wheelItems = useMemo(() => {
     if (!shuffleSeed) return filteredItems;
@@ -148,6 +160,18 @@ export default function App() {
   const handleShuffle = () => setShuffleSeed(Date.now());
   const handleResetShuffle = () => setShuffleSeed(0);
 
+  const handleToggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    save('muted', next);
+  };
+
+  const handleToggleSource = (typeId) => {
+    const next = { ...enabled, [typeId]: !enabled[typeId] };
+    setEnabled(next);
+    save('enabled', next);
+  };
+
   const lastSpinEntry = history[0] || null;
   const recentEntries = history.slice(1, 6); // up to 5 prior spins under the featured card
   const anyLoading = moviesLoading || wishlistLoading || libraryLoading;
@@ -157,6 +181,8 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       <TopNav
         totalItems={allItems.length}
+        muted={muted}
+        onToggleMute={handleToggleMute}
         onOpenHistory={() => setHistoryOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
       />
@@ -206,7 +232,7 @@ export default function App() {
                 onOpenSettings={() => setSettingsOpen(true)}
               />
             ) : (
-              <Wheel items={wheelItems} onResult={handleResult} />
+              <Wheel items={wheelItems} muted={muted} onResult={handleResult} />
             )}
           </div>
         </section>
@@ -235,7 +261,10 @@ export default function App() {
             <SourcesList
               counts={counts}
               connected={connected}
+              enabled={enabled}
+              onToggle={handleToggleSource}
               onConnect={() => setSettingsOpen(true)}
+              letterboxdImportedAt={settings.letterboxdImportedAt}
             />
             {(anyLoading || anyError) && (
               <div className="space-y-1 text-[11px] tracking-wide font-sans mt-3">

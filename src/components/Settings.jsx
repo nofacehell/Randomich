@@ -3,6 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 export default function Settings({ open, onClose, initial, onSave }) {
   const [csvName, setCsvName] = useState(initial?.letterboxdFileName || '');
   const [csv, setCsv] = useState(initial?.letterboxdCsv || '');
+  const [csvImportedAt, setCsvImportedAt] = useState(
+    initial?.letterboxdImportedAt || null
+  );
   const [steamId, setSteamId] = useState(initial?.steamId || '');
   const [steamApiKey, setSteamApiKey] = useState(initial?.steamApiKey || '');
   const [useWishlist, setUseWishlist] = useState(initial?.useWishlist ?? true);
@@ -15,6 +18,7 @@ export default function Settings({ open, onClose, initial, onSave }) {
     if (open) {
       setCsv(initial?.letterboxdCsv || '');
       setCsvName(initial?.letterboxdFileName || '');
+      setCsvImportedAt(initial?.letterboxdImportedAt || null);
       setSteamId(initial?.steamId || '');
       setSteamApiKey(initial?.steamApiKey || '');
       setUseWishlist(initial?.useWishlist ?? true);
@@ -47,6 +51,7 @@ export default function Settings({ open, onClose, initial, onSave }) {
       }
       setCsv(text);
       setCsvName(file.name);
+      setCsvImportedAt(Date.now());
     } catch (err) {
       setCsvError('Не удалось прочитать файл: ' + err.message);
     }
@@ -55,6 +60,7 @@ export default function Settings({ open, onClose, initial, onSave }) {
   const handleClearCsv = () => {
     setCsv('');
     setCsvName('');
+    setCsvImportedAt(null);
     setCsvError(null);
     if (fileRef.current) fileRef.current.value = '';
   };
@@ -64,6 +70,7 @@ export default function Settings({ open, onClose, initial, onSave }) {
     onSave({
       letterboxdCsv: csv,
       letterboxdFileName: csvName,
+      letterboxdImportedAt: csvImportedAt,
       steamId: steamId.trim(),
       steamApiKey: steamApiKey.trim(),
       useWishlist,
